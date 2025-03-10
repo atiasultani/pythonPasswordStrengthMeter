@@ -1,49 +1,76 @@
+import streamlit as st
 import re
 
-# Function to evaluate password strength
-def evaluate_password_strength(password):
-    length = len(password)
-    strength = 0
+def check_password_strength(password):
+    """
+    Checks password strength based on:
+    - Length (8+ characters)
+    - Upper & Lowercase letters
+    - At least one digit (0-9)
+    - At least one special character (!@#$%^&*)
+    """
+    score = 0
+    suggestions = []
 
-    # Check for minimum length
-    if length >= 8:
-        strength += 1
+    # Length Check
+    if len(password) >= 8:
+        score += 1
     else:
-        return "Very Weak"
+        suggestions.append("❌ Use at least 8 characters.")
 
-    # Check for at least one uppercase letter
+    # Uppercase Check
     if re.search(r"[A-Z]", password):
-        strength += 1
-
-    # Check for at least one lowercase letter
-    if re.search(r"[a-z]", password):
-        strength += 1
-
-    # Check for at least one digit
-    if re.search(r"\d", password):
-        strength += 1
-
-    # Check for at least one special character
-    if re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-        strength += 1
-
-    # Determine the strength based on the criteria
-    if strength == 5:
-        return "Very Strong"
-    elif strength == 4:
-        return "Strong"
-    elif strength == 3:
-        return "Medium"
-    elif strength == 2:
-        return "Weak"
+        score += 1
     else:
-        return "Very Weak"
+        suggestions.append("❌ Add at least one uppercase letter.")
 
-# Main function to interact with the user
-def main():
-    password = input("Enter a password to check its strength: ")
-    strength = evaluate_password_strength(password)
-    print(f"Password Strength: {strength}")
+    # Lowercase Check
+    if re.search(r"[a-z]", password):
+        score += 1
+    else:
+        suggestions.append("❌ Add at least one lowercase letter.")
 
-if __name__ == "__main__":
-    main()
+    # Digit Check
+    if re.search(r"\d", password):
+        score += 1
+    else:
+        suggestions.append("❌ Include at least one number (0-9).")
+
+    # Special Character Check
+    if re.search(r"[!@#$%^&*]", password):
+        score += 1
+    else:
+        suggestions.append("❌ Include at least one special character (!@#$%^&*).")
+
+    # Strength Rating
+    if score == 5:
+        strength = "🟢 Strong Password!"
+        color = "green"
+    elif 3 <= score <= 4:
+        strength = "🟡 Moderate Password - Consider improving it."
+        color = "orange"
+    else:
+        strength = "🔴 Weak Password - Improve it using the suggestions below."
+        color = "red"
+
+    return strength, color, suggestions
+
+# Streamlit UI
+st.title("🔐 Password Strength Meter")
+st.write("Enter a password to check its strength and get suggestions to improve it.")
+
+# User Input
+password = st.text_input("Enter your password:", type="password")
+
+if password:
+    strength, color, suggestions = check_password_strength(password)
+
+    # Display Strength Result
+    st.markdown(f"<h4 style='color: {color};'>{strength}</h4>", unsafe_allow_html=True)
+
+    # Show Improvement Suggestions
+    if suggestions:
+        st.subheader("🔧 Suggestions to Improve:")
+        for suggestion in suggestions:
+            st.write(f"- {suggestion}")
+
